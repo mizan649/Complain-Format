@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Complain Formatter - Mizan</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+      position: relative;
+    }
+    h1 { text-align: center; color: #2c5282; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: #4a5568; margin-bottom: 30px; }
+    textarea {
+      width: 100%;
+      height: 180px;
+      padding: 14px;
+      font-size: 16px;
+      border: 2px solid #cbd5e0;
+      border-radius: 8px;
+      resize: vertical;
+      font-family: monospace;
+      background: #fafbfc;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66,153,225,0.3);
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin: 20px 0 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background: #3182ce;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #2b6cb0; }
+    #output {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px;
+      white-space: pre-wrap;
+      min-height: 140px;
+      font-family: monospace;
+      font-size: 15px;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .copy-btn {
+      float: right;
+      padding: 8px 16px;
+      font-size: 14px;
+      background: #38a169;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { background: #2f855a; }
+    .copy-btn.copied {
+      background: #2f855a;
+      transform: scale(1.05);
+    }
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #38a169;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.4s ease;
+      font-weight: bold;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .info { font-size: 14px; color: #718096; text-align: center; margin-top: 30px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Complain Formatter</h1>
+  <p class="subtitle">ডেটা পেস্ট করো → ফরম্যাট হয়ে যাবে (অনু তে লাল বাতি জ্বলে সহ)</p>
+
+  <textarea id="input" placeholder="এখানে তোমার ডেটা পেস্ট করো..."></textarea>
+
+  <button onclick="formatData()">Format করো</button>
+
+  <div id="output"></div>
+  <button class="copy-btn" onclick="copyOutput()" style="display:none;" id="copyBtn">কপি করো</button>
+
+  <div class="info">শুধু ব্রাউজারে চলে • কোনো সার্ভার লাগবে না</div>
+</div>
+
+<!-- Toast element -->
+<div id="toast" class="toast">Copied!</div>
+
+<script>
+function formatData() {
+  const input = document.getElementById('input').value.trim();
+  if (!input) {
+    document.getElementById('output').innerText = "কিছু লেখো তো...";
+    document.getElementById('copyBtn').style.display = 'none';
+    return;
+  }
+
+  const lines = input.split('\n').map(l => l.trim()).filter(l => l);
+  let result = '';
+
+  lines.forEach(line => {
+    if (!line) return;
+    const parts = line.split(',').map(p => p.trim());
+
+    let customerId = '';
+    let name = '';
+    let addressPart = '';
+    let phone = '';
+
+    // দুই ধরনের ফরম্যাট হ্যান্ডেল
+    if (parts[0].startsWith('NCDV')) {
+      customerId = parts[0] + ',';
+
+      // যদি দ্বিতীয় অংশ নাম্বার হয় → দ্বিতীয় ধরন (name হবে parts[2])
+      if (/^\d+$/.test(parts[1]) || parts[1].startsWith('+')) {
+        name = (parts[2] || '') + ',';
+        let areaIndex = parts.findIndex(p => p.includes('Area #'));
+        if (areaIndex > -1) {
+          const addrStart = areaIndex + 1;
+          for (let j = parts.length - 1; j >= addrStart; j--) {
+            if (/^880|^\+88|^\d{10,}$/.test(parts[j])) {
+              phone = parts[j];
+              addressPart = parts.slice(addrStart, j).join(', ');
+              break;
+            }
+          }
+        }
+      } 
+      // অন্যথায় প্রথম ধরন (name = parts[1])
+      else {
+        name = (parts[1] || '') + ',';
+        let areaIndex = parts.findIndex(p => p.includes('Area #'));
+        if (areaIndex > -1) {
+          const addrStart = areaIndex + 1;
+          for (let j = parts.length - 1; j >= addrStart; j--) {
+            if (/^880|^\+88|^\d{10,}$/.test(parts[j])) {
+              phone = parts[j];
+              addressPart = parts.slice(addrStart, j).join(', ');
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (customerId && name && phone) {
+      result += `Complain#\n${customerId}\n${name}${addressPart},\n${phone}\n\nঅনু তে লাল বাতি জ্বলে\n\n`;
+    } else {
+      result += `Error: "${line}" ফরম্যাট ম্যাচ করেনি\n\n`;
+    }
+  });
+
+  document.getElementById('output').innerText = result.trim();
+  document.getElementById('copyBtn').style.display = result.includes('অনু তে লাল বাতি') ? 'block' : 'none';
+}
+
+function copyOutput() {
+  const text = document.getElementById('output').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    // টোস্ট দেখাও
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+
+    // বাটন টেক্সট চেঞ্জ
+    const btn = document.getElementById('copyBtn');
+    const originalText = btn.innerText;
+    btn.innerText = 'Copied!';
+    btn.classList.add('copied');
+
+    // ২ সেকেন্ড পর সব রিসেট
+    setTimeout(() => {
+      toast.classList.remove('show');
+      btn.innerText = originalText;
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(err => {
+    console.error('Copy failed', err);
+    // ফলব্যাক: alert যদি clipboard না কাজ করে
+    alert('কপি করতে সমস্যা হচ্ছে\nম্যানুয়ালি সিলেক্ট করে কপি করো');
+  });
+}
+</script>
+
+</body>
+</html>

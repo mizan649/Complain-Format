@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Complain Formatter V8</title>
+  <title>Complain Formatter - 4 Options</title>
   <style>
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -59,13 +59,12 @@
       width: 100%;
       transition: background 0.2s;
     }
-    button:hover { background: #1e3a8a; }
+    button:hover { background: #047857; }
     .output-grid {
       margin-top: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;      
-      gap: 90px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
     }
     .output-card {
       border: 1px solid #e2e8f0;
@@ -75,30 +74,30 @@
     }
     .output-title {
       background: #eff6ff;
-      padding: 1px 1px;
+      padding: 12px 16px;
       font-weight: 600;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       border-bottom: 1px solid #e2e8f0;
     }
     .output-content {
-      padding: 15px;
+      padding: 16px;
       white-space: pre-wrap;
       font-family: monospace;
-      font-size: 14.5px;
+      font-size: 14px;
       line-height: 1.6;
       background: #fafafa;
-      min-height: 160px;
+      min-height: 140px;
     }
     .copy-button {
       background: #059669;
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
+      padding: 8px 16px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      margin: 12px 16px;
       float: right;
+      margin: 10px;
     }
     .copy-button:hover { background: #047857; }
     #toast {
@@ -124,25 +123,36 @@
 <div class="container">
   <div class="header">
     <h1>Complain Formatter</h1>
-    <!-- <p>এখন ID-র পরের extra number (যেমন 3774586477) অটো বাদ যাবে</p> -->
   </div>
 
   <div class="content">
     <textarea id="input" placeholder="ডেটা পেস্ট করো..."></textarea>
     
-    <button onclick="parseAndFormat()">Format </button>
+    <button onclick="parseAndFormat()">Format</button>
 
     <div class="output-grid">
       <div class="output-card">
-        <div class="output-title">অনু তে লাল বাতি জ্বলে</div>
+        <div class="output-title">অনু লস ইস্যু 🛑🛑</div>
         <div class="output-content" id="result1">...</div>
         <button class="copy-button" id="copyBtn1" style="display:none;" onclick="copyResult(1)">Copy</button>
       </div>
 
       <div class="output-card">
-        <div class="output-title">নো নেটওয়ার্ক সার্ভিস</div>
+        <div class="output-title">নো ইন্টারনেট সার্ভিস 📶📶</div>
         <div class="output-content" id="result2">...</div>
         <button class="copy-button" id="copyBtn2" style="display:none;" onclick="copyResult(2)">Copy</button>
+      </div>
+
+      <div class="output-card">
+        <div class="output-title">রাউটার কনফিগার করে দিবেন ⚙⚙️</div>
+        <div class="output-content" id="result3">...</div>
+        <button class="copy-button" id="copyBtn3" style="display:none;" onclick="copyResult(3)">Copy</button>
+      </div>
+
+      <div class="output-card">
+        <div class="output-title">লাইন ভালোভাবে চেক করে উপ করে দিবেন ⬆️⬆️</div>
+        <div class="output-content" id="result4">...</div>
+        <button class="copy-button" id="copyBtn4" style="display:none;" onclick="copyResult(4)">Copy</button>
       </div>
     </div>
   </div>
@@ -151,20 +161,17 @@
 <div id="toast">Copied to clipboard!</div>
 
 <script>
-
 function parseAndFormat() {
   const text = document.getElementById('input').value.trim();
   if (!text) return;
 
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  let output1 = '';
-  let output2 = '';
+  let output1 = '', output2 = '', output3 = '', output4 = '';
 
   lines.forEach(line => {
     let id = (line.match(/NCDV\d+/) || [])[0] || '';
     if (!id) return;
 
-    // নাম: ID এর পর থেকে 'District #' এর আগ পর্যন্ত (District # এর আগে যা আছে তাই নাম)
     let name = '';
     const idPos = line.indexOf(id);
     const districtPos = line.indexOf('District #', idPos);
@@ -172,7 +179,6 @@ function parseAndFormat() {
       name = line.substring(idPos + id.length, districtPos).trim();
     }
 
-    // অ্যাড্রেস: শুধু 'Area #' এর পরের অংশ থেকে প্রথম 880... পর্যন্ত
     let address = '';
     const areaPos = line.indexOf('Area #');
     if (areaPos > -1) {
@@ -181,33 +187,36 @@ function parseAndFormat() {
       if (firstPhonePos > addrStart) {
         address = line.substring(addrStart, firstPhonePos).trim().replace(/,\s*$/, '');
       } else {
-        // যদি ফোন না পাওয়া যায়, তারিখের আগ পর্যন্ত
         const datePos = line.search(/\d{1,2}\s+[A-Za-z]{3}\s+\d{4}/);
         address = line.substring(addrStart, datePos > -1 ? datePos : line.length).trim().replace(/,\s*$/, '');
       }
     }
 
-    // ফোন: প্রথম 880xxxxxxxxxx
     const phones = line.match(/880\d{10}/g) || [];
     const phone = phones[0] || '';
 
-    // তারিখ
     const dateMatch = line.match(/(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})/);
     const date = dateMatch ? dateMatch[1] : '';
 
     if (name && address && phone) {
       const block = `Complain#\n${id}\n${name}\n${address},\n${phone}${date ? `\n${date}` : ''}\n\n`;
-      output1 += block + 'অনু তে লাল বাতি জ্বলে\n\n';
-      output2 += block + 'নো নেটওয়ার্ক সার্ভিস\n\n';
+      output1 += block + 'অণু লস ইস্যু 🛑🛑\n\n';
+      output2 += block + 'নো ইন্টারনেট সার্ভিস 📶📶\n\n';
+      output3 += block + 'রাউটার কনফিগার করে দিবেন ⚙⚙️\n\n';
+      output4 += block + 'লাইন ভালোভাবে চেক করে উপ করে দিবেন ⬆️⬆️\n\n';
     }
   });
 
   document.getElementById('result1').textContent = output1.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
   document.getElementById('result2').textContent = output2.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
+  document.getElementById('result3').textContent = output3.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
+  document.getElementById('result4').textContent = output4.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
 
-  const show = output1 || output2;
+  const show = output1 || output2 || output3 || output4;
   document.getElementById('copyBtn1').style.display = show ? 'block' : 'none';
   document.getElementById('copyBtn2').style.display = show ? 'block' : 'none';
+  document.getElementById('copyBtn3').style.display = show ? 'block' : 'none';
+  document.getElementById('copyBtn4').style.display = show ? 'block' : 'none';
 }
 
 function copyResult(n) {

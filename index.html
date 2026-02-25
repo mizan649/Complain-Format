@@ -1,223 +1,220 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Complain Formatter - Mizan</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complain Formatter V8</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(to bottom, #f1f5f9, #e2e8f0);
       margin: 0;
-      padding: 20px;
-      color: #333;
+      padding: 20px 10px;
+      color: #1e293b;
     }
     .container {
-      max-width: 720px;
+      max-width: 960px;
       margin: 0 auto;
       background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-      position: relative;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      overflow: hidden;
     }
-    h1 { text-align: center; color: #2c5282; margin-bottom: 10px; }
-    .subtitle { text-align: center; color: #4a5568; margin-bottom: 30px; }
-    textarea {
-      width: 100%;
-      height: 180px;
-      padding: 14px;
-      font-size: 16px;
-      border: 2px solid #cbd5e0;
-      border-radius: 8px;
-      resize: vertical;
-      font-family: monospace;
-      background: #fafbfc;
-    }
-    textarea:focus {
-      outline: none;
-      border-color: #4299e1;
-      box-shadow: 0 0 0 3px rgba(66,153,225,0.3);
-    }
-    button {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      margin: 20px 0 10px;
-      font-size: 18px;
-      font-weight: bold;
+    .header {
+      background: #059669;
       color: white;
-      background: #3182ce;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
+      padding: 24px 20px;
+      text-align: center;
     }
-    button:hover { background: #2b6cb0; }
-    #output {
-      background: #f7fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 18px;
-      white-space: pre-wrap;
-      min-height: 140px;
-      font-family: monospace;
+    .header h1 { margin: 0; font-size: 1.6rem; }
+    .header p { margin: 8px 0 0; font-size: 1.05rem; opacity: 0.95; }
+    .content { padding: 24px 20px; }
+    textarea {
+      width: 95%;
+      min-height: 100px;
+      padding: 16px;
       font-size: 15px;
       line-height: 1.5;
-      margin-top: 10px;
+      border: 2px solid #cbd5e0;
+      border-radius: 12px;
+      font-family: 'Courier New', monospace;
+      background: #f8fafc;
+      resize: vertical;
+      margin-bottom: 16px;
     }
-    .copy-btn {
-      float: right;
-      padding: 8px 16px;
-      font-size: 14px;
-      background: #38a169;
+    textarea:focus {
+      border-color: #1e40af;
+      box-shadow: 0 0 0 4px rgba(30,64,175,0.15);
+      outline: none;
+    }
+    button {
+      background: #059669;
       color: white;
       border: none;
-      border-radius: 6px;
+      padding: 16px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      border-radius: 12px;
       cursor: pointer;
-      margin-top: 10px;
-      transition: all 0.2s;
+      width: 100%;
+      transition: background 0.2s;
     }
-    .copy-btn:hover { background: #2f855a; }
-    .copy-btn.copied {
-      background: #2f855a;
-      transform: scale(1.05);
+    button:hover { background: #1e3a8a; }
+    .output-grid {
+      margin-top: 32px;
+      display: grid;
+      gap: 28px;
     }
-    .toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background: #38a169;
+    .output-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: white;
+    }
+    .output-title {
+      background: #eff6ff;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .output-content {
+      padding: 16px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14.5px;
+      line-height: 1.6;
+      background: #fafafa;
+      min-height: 160px;
+    }
+    .copy-button {
+      background: #059669;
       color: white;
-      padding: 14px 24px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 1000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 12px 16px;
+      float: right;
+    }
+    .copy-button:hover { background: #047857; }
+    #toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: #059669;
+      color: white;
+      padding: 14px 28px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.4s ease;
-      font-weight: bold;
+      z-index: 1000;
+      font-weight: 600;
     }
-    .toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .info { font-size: 14px; color: #718096; text-align: center; margin-top: 30px; }
+    #toast.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Complain Formatter</h1>
-  <p class="subtitle">ডেটা পেস্ট করো → ফরম্যাট হয়ে যাবে (অনু তে লাল বাতি জ্বলে সহ)</p>
+  <div class="header">
+    <h1>Complain Formatter</h1>
+    <!-- <p>এখন ID-র পরের extra number (যেমন 3774586477) অটো বাদ যাবে</p> -->
+  </div>
 
-  <textarea id="input" placeholder="এখানে তোমার ডেটা পেস্ট করো..."></textarea>
+  <div class="content">
+    <textarea id="input" placeholder="ডেটা পেস্ট করো..."></textarea>
+    
+    <button onclick="parseAndFormat()">Format </button>
 
-  <button onclick="formatData()">Format করো</button>
+    <div class="output-grid">
+      <div class="output-card">
+        <div class="output-title">অনু তে লাল বাতি জ্বলে</div>
+        <div class="output-content" id="result1">...</div>
+        <button class="copy-button" id="copyBtn1" style="display:none;" onclick="copyResult(1)">Copy</button>
+      </div>
 
-  <div id="output"></div>
-  <button class="copy-btn" onclick="copyOutput()" id="copyBtn">কপি করো</button>
-
-  <div class="info">শুধু ব্রাউজারে চলে • কোনো সার্ভার লাগবে না</div>
+      <div class="output-card">
+        <div class="output-title">নো নেটওয়ার্ক সার্ভিস</div>
+        <div class="output-content" id="result2">...</div>
+        <button class="copy-button" id="copyBtn2" style="display:none;" onclick="copyResult(2)">Copy</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Toast element -->
-<div id="toast" class="toast">Copied!</div>
+<div id="toast">Copied to clipboard!</div>
 
 <script>
-function formatData() {
-  const input = document.getElementById('input').value.trim();
-  if (!input) {
-    document.getElementById('output').innerText = "কিছু লেখো তো...";
-    document.getElementById('copyBtn').style.display = 'none';
-    return;
-  }
 
-  const lines = input.split('\n').map(l => l.trim()).filter(l => l);
-  let result = '';
+function parseAndFormat() {
+  const text = document.getElementById('input').value.trim();
+  if (!text) return;
+
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  let output1 = '';
+  let output2 = '';
 
   lines.forEach(line => {
-    if (!line) return;
-    const parts = line.split(',').map(p => p.trim());
+    let id = (line.match(/NCDV\d+/) || [])[0] || '';
+    if (!id) return;
 
-    let customerId = '';
+    // নাম: ID এর পর থেকে 'District #' এর আগ পর্যন্ত (District # এর আগে যা আছে তাই নাম)
     let name = '';
-    let addressPart = '';
-    let phone = '';
+    const idPos = line.indexOf(id);
+    const districtPos = line.indexOf('District #', idPos);
+    if (districtPos > idPos) {
+      name = line.substring(idPos + id.length, districtPos).trim();
+    }
 
-    // দুই ধরনের ফরম্যাট হ্যান্ডেল
-    if (parts[0].startsWith('NCDV')) {
-      customerId = parts[0] + ',';
-
-      // যদি দ্বিতীয় অংশ নাম্বার হয় → দ্বিতীয় ধরন (name হবে parts[2])
-      if (/^\d+$/.test(parts[1]) || parts[1].startsWith('+')) {
-        name = (parts[2] || '') + ',';
-        let areaIndex = parts.findIndex(p => p.includes('Area #'));
-        if (areaIndex > -1) {
-          const addrStart = areaIndex + 1;
-          for (let j = parts.length - 1; j >= addrStart; j--) {
-            if (/^880|^\+88|^\d{10,}$/.test(parts[j])) {
-              phone = parts[j];
-              addressPart = parts.slice(addrStart, j).join(', ');
-              break;
-            }
-          }
-        }
-      } 
-      // অন্যথায় প্রথম ধরন (name = parts[1])
-      else {
-        name = (parts[1] || '') + ',';
-        let areaIndex = parts.findIndex(p => p.includes('Area #'));
-        if (areaIndex > -1) {
-          const addrStart = areaIndex + 1;
-          for (let j = parts.length - 1; j >= addrStart; j--) {
-            if (/^880|^\+88|^\d{10,}$/.test(parts[j])) {
-              phone = parts[j];
-              addressPart = parts.slice(addrStart, j).join(', ');
-              break;
-            }
-          }
-        }
+    // অ্যাড্রেস: শুধু 'Area #' এর পরের অংশ থেকে প্রথম 880... পর্যন্ত
+    let address = '';
+    const areaPos = line.indexOf('Area #');
+    if (areaPos > -1) {
+      const addrStart = areaPos + 'Area #'.length;
+      const firstPhonePos = line.indexOf('880', addrStart);
+      if (firstPhonePos > addrStart) {
+        address = line.substring(addrStart, firstPhonePos).trim().replace(/,\s*$/, '');
+      } else {
+        // যদি ফোন না পাওয়া যায়, তারিখের আগ পর্যন্ত
+        const datePos = line.search(/\d{1,2}\s+[A-Za-z]{3}\s+\d{4}/);
+        address = line.substring(addrStart, datePos > -1 ? datePos : line.length).trim().replace(/,\s*$/, '');
       }
     }
 
-    if (customerId && name && phone) {
-      result += `Complain#\n${customerId}\n${name}${addressPart},\n${phone}\n\nঅনু তে লাল বাতি জ্বলে\n\n`;
-    } else {
-      result += `Error: "${line}" ফরম্যাট ম্যাচ করেনি\n\n`;
+    // ফোন: প্রথম 880xxxxxxxxxx
+    const phones = line.match(/880\d{10}/g) || [];
+    const phone = phones[0] || '';
+
+    // তারিখ
+    const dateMatch = line.match(/(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})/);
+    const date = dateMatch ? dateMatch[1] : '';
+
+    if (name && address && phone) {
+      const block = `Complain#\n${id}\n${name}\n${address},\n${phone}${date ? `\n${date}` : ''}\n\n`;
+      output1 += block + 'অনু তে লাল বাতি জ্বলে\n\n';
+      output2 += block + 'নো নেটওয়ার্ক সার্ভিস\n\n';
     }
   });
 
-  document.getElementById('output').innerText = result.trim();
-  document.getElementById('copyBtn').style.display = result.includes('অনু তে লাল বাতি') ? 'block' : 'none';
+  document.getElementById('result1').textContent = output1.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
+  document.getElementById('result2').textContent = output2.trim() || 'কোনো বৈধ ডেটা পার্স হয়নি';
+
+  const show = output1 || output2;
+  document.getElementById('copyBtn1').style.display = show ? 'block' : 'none';
+  document.getElementById('copyBtn2').style.display = show ? 'block' : 'none';
 }
 
-function copyOutput() {
-  const text = document.getElementById('output').innerText;
+function copyResult(n) {
+  const text = document.getElementById('result' + n).textContent;
   navigator.clipboard.writeText(text).then(() => {
-    // টোস্ট দেখাও
-    const toast = document.getElementById('toast');
-    toast.classList.add('show');
-
-    // বাটন টেক্সট চেঞ্জ
-    const btn = document.getElementById('copyBtn');
-    const originalText = btn.innerText;
-    btn.innerText = 'Copied!';
-    btn.classList.add('copied');
-
-    // ২ সেকেন্ড পর সব রিসেট
-    setTimeout(() => {
-      toast.classList.remove('show');
-      btn.innerText = originalText;
-      btn.classList.remove('copied');
-    }, 2000);
-  }).catch(err => {
-    console.error('Copy failed', err);
-    // ফলব্যাক: alert যদি clipboard না কাজ করে
-    alert('কপি করতে সমস্যা হচ্ছে\nম্যানুয়ালি সিলেক্ট করে কপি করো');
-  });
+    document.getElementById('toast').classList.add('visible');
+    setTimeout(() => document.getElementById('toast').classList.remove('visible'), 2200);
+  }).catch(() => alert('কপি করতে সমস্যা'));
 }
 </script>
-
 </body>
 </html>

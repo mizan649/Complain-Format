@@ -160,7 +160,7 @@
 
 <div id="toast">Copied to clipboard!</div>
 
-<script>
+<<script>
 function parseAndFormat() {
   const text = document.getElementById('input').value.trim();
   if (!text) return;
@@ -174,9 +174,28 @@ function parseAndFormat() {
 
     let name = '';
     const idPos = line.indexOf(id);
-    const districtPos = line.indexOf('District #', idPos);
-    if (districtPos > idPos) {
-      name = line.substring(idPos + id.length, districtPos).trim();
+
+    // ID এর পর থেকে শুরু করে extra number স্কিপ করা
+    let nameStart = idPos + id.length;
+    const afterIdText = line.substring(nameStart).trim();
+
+    // প্রথম টোকেন যদি নম্বর হয় তাহলে স্কিপ
+    const firstWord = afterIdText.split(/\s+/)[0] || '';
+    if (/^\d{7,15}$/.test(firstWord)) {
+      nameStart += firstWord.length + (afterIdText.indexOf(firstWord) + firstWord.length < afterIdText.length ? 1 : 0);
+    }
+
+    // এখন District # খুঁজে নাম বের করা
+    const districtPos = line.indexOf('District #', nameStart);
+    if (districtPos > nameStart) {
+      name = line.substring(nameStart, districtPos).trim();
+    } else {
+      const areaPos = line.indexOf('Area #', nameStart);
+      if (areaPos > nameStart) {
+        name = line.substring(nameStart, areaPos).trim();
+      } else {
+        name = afterIdText.split('District')[0].trim();
+      }
     }
 
     let address = '';
@@ -203,7 +222,7 @@ function parseAndFormat() {
       output1 += block + 'অণু লস ইস্যু 🛑🛑\n\n';
       output2 += block + 'নো ইন্টারনেট সার্ভিস 📶📶\n\n';
       output3 += block + 'রাউটার কনফিগার করে দিবেন ⚙⚙️\n\n';
-      output4 += block + 'লাইন ভালোভাবে চেক করে উপ করে দিবেন ⬆️⬆️\n\n';
+      output4 += block + 'লাইন ভালোভাবে চেক করে আপ করে দিবেন ⬆️⬆️\n\n';
     }
   });
 
